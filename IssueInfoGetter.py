@@ -20,7 +20,8 @@ def main():
     db = MySQLdb.connect(host="localhost",    # your host, usually localhost
                      user="root",         # your username
                      passwd="barefoot",  # your password
-                     db="angular")        # name of the data base
+                     db="angular",
+                     charset="utf8")        # name of the data base
     conn = db.cursor()
 
     # load_issue_events()
@@ -116,6 +117,12 @@ def db_issue_writer(json_issue):
         else:
             assignee_id = None
 
+        milestone = json_issue['milestone']
+        if milestone != None:
+            milestone_id = milestone['id']
+        else:
+            milestone_id = None
+
         issueID = json_issue['id']
         url = json_issue['url']
         number = json_issue['number']
@@ -123,18 +130,23 @@ def db_issue_writer(json_issue):
         state = json_issue['state']
         locked = json_issue['locked']
         assignees = json_issue['assignees'] #???
-        milestone = json_issue['milestone']
         comments = json_issue['comments']
         created_at = json_issue['created_at']
         updated_at = json_issue['updated_at']
         closed_at = json_issue['closed_at']
-        body = json_issue['body']
         labels = json_issue['labels']
         repo_url = json_issue['repository_url']
         labels_url = json_issue['labels_url']
         comments_url = json_issue['comments_url']
         events_url = json_issue['events_url']
         html_url = json_issue['html_url']
+
+        body = sanitizeBody(json_issue['body'])
+
+        if 'closed_by' in json_issue:
+            closed_by = json_issue['closed_by']
+        else:
+            closed_by = None
 
     except TypeError as e:
         print(str(e))
@@ -143,17 +155,17 @@ def db_issue_writer(json_issue):
         return
 
     db_labels_writer(issueID, labels)
-
     created_at_object = getTimeWrapper(created_at)
     updated_at_object = getTimeWrapper(updated_at)
     closed_at_object = getTimeWrapper(closed_at)
 
     try:
-        query = "INSERT INTO issues VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-        conn.execute(query, (issueID,url,number,title,state,locked,user_id,assignee_id,milestone,comments,created_at_object,updated_at_object,closed_at_object,body,repo_url,labels_url,comments_url,events_url,html_url))
+        query = "INSERT INTO issues VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        conn.execute(query, (issueID,url,number,title,state,locked,user_id,assignee_id,milestone_id,int(comments),created_at_object,updated_at_object,closed_at_object,closed_by,body,repo_url,labels_url,comments_url,events_url,html_url))
         db.commit()
     except Exception as e:
         print(str(e))
+        import pdb; pdb.set_trace()
         db.rollback()
 
 def getTimeWrapper(datetimeStr):
@@ -163,6 +175,13 @@ def getTimeWrapper(datetimeStr):
         datetimeObj = None
 
     return datetimeObj
+
+def sanitizeBody(body):
+    return ""
+    # if body != None:
+    #     return body.encode('utf-8')
+    # else:
+    #     return None
 
 def db_issue_event_writer(json_event):
     global conn
@@ -205,7 +224,6 @@ def db_issue_event_writer(json_event):
         db.rollback()
 
 def db_labels_writer(issue_id, json_labels):
-
     for label in json_labels:
         url = label['url']
         name = label['name']
@@ -220,15 +238,15 @@ def db_labels_writer(issue_id, json_labels):
             print(str(e))
             db.rollback()
 
-def db_user_writer(json_actor):
-    global conn
-    global db
+# def db_user_writer(json_actor):
+#     global conn
+#     global db
 
-    try:
-       x.execute("INSERT INTO anooog1 VALUES (%s,%s)" % (188,90))
-       conn.commit()
-    except:
-       db.rollback()
+#     try:
+#        x.execute("INSERT INTO anooog1 VALUES (%s,%s)" % (188,90))
+#        conn.commit()
+#     except:
+#        db.rollback()
 
 def rate_limit_exceeded():
     rate_limit_obj = requests.get('https://api.github.com/rate_limit').json()
