@@ -19,7 +19,7 @@ def main():
     database = 'angular'
     db = MySQLdb.connect(host="localhost",    # your host, usually localhost
                      user="root",         # your username
-                     passwd="barefoot",  # your password
+                     passwd="pass",  # your password
                      db="angular",
                      charset="utf8")        # name of the data base
     conn = db.cursor()
@@ -167,6 +167,46 @@ def db_issue_writer(json_issue):
         print(str(e))
         import pdb; pdb.set_trace()
         db.rollback()
+
+def db_user_writer(json_user):
+    """
+    "login": "vsavkin",
+    "id": 35996,
+    "avatar_url": "https://avatars.githubusercontent.com/u/35996?v=3",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/vsavkin",
+    "html_url": "https://github.com/vsavkin",
+    "followers_url": "https://api.github.com/users/vsavkin/followers",
+    "following_url": "https://api.github.com/users/vsavkin/following{/other_user}",
+    "gists_url": "https://api.github.com/users/vsavkin/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/vsavkin/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/vsavkin/subscriptions",
+    "organizations_url": "https://api.github.com/users/vsavkin/orgs",
+    "repos_url": "https://api.github.com/users/vsavkin/repos",
+    "events_url": "https://api.github.com/users/vsavkin/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/vsavkin/received_events",
+    "type": "User",
+    "site_admin": false,
+    "contributions": 758
+    """
+
+    login = json_user['login']
+    userID = json_user['id']
+    url = json_user['url']
+    followers_url = json_user['followers_url']
+    following_url = json_user['following_url']
+    gists_url = json_user['gists_url']
+    starred_url = json_user['starred_url']
+    subscriptions_url = json_user['subscriptions_url']
+    organizations_url = json_user['organizations_url']
+    repos_url = json_user['repos_url']
+    events_url = json_user['events_url']
+    received_events_url = json_user['received_events_url']
+    userType = json_user['type']
+    site_admin = json_user['site_admin']
+    contributions = int(json_user['contributions'])
+
+
 
 def getTimeWrapper(datetimeStr):
     if datetimeStr != None:
